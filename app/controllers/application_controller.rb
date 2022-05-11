@@ -1,7 +1,7 @@
 class ApplicationController < ActionController::API
     include JsonWebToken
 
-    skip_before_action :authenticate_request
+    skip_before_action :authenticate_request, :raise => false
 
     private
         def authenticate_request

@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-    skip_before_action :authenticate_request, only: [:create]
+    skip_before_action :authenticate_request, only: [:create], :raise => false
     before_action :set_user, only: [:show, :destroy]
 
 
@@ -17,12 +17,28 @@ class UsersController < ApplicationController
     # POST /users
 
     def create
-        @user = User.new(user_params)
-        if @user.save
-            render json: @user, status: :created
-        else
-            render json: { errors: @user.errors.full.messages }, status: :unprocessable_entity
+        begin
+            User.transaction do
+                @users = User.create!(user_params)
+            end
+        rescue ActiveRecord::RecordInvalid => exception
+            @users = { 
+                error: { 
+                    status: 422,
+                    messages: exception    
+                }
+            }
         end
+        #@user = User.new(user_params)
+        #if @user.save
+        #    render json: @user, status: :created
+        #else
+        #    render json: { errors: @user.errors.full.messages }, status: :unprocessable_entity
+        #end
+
+        #if params[:user].is_a? Array
+        #    params[:user].map { |hash| User.create(user_params(hash)) }
+        #end
     end
 
     # PUT /users/{username}
